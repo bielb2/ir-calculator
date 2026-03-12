@@ -4,6 +4,10 @@ Calcula preço médio de compra e lucro/prejuízo por venda, gerando um relatór
 
 ---
 
+### Ideia do projeto
+
+Hoje a b3 não da suporte mais a integração pela api oficial, apenas sendo possível exportar o xlsx. Para não ter que pagar nenhuma calculadora de IR, é possível utilizar a B3 e exportar o xlsx ou outras plataformas e utilizar o script para calcular.
+
 ## Instalação
 
 ```bash
