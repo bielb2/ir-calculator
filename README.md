@@ -89,6 +89,9 @@ Gera o arquivo `resultado_ir.xlsx` com as abas:
 - Suporte automático a desdobramentos (splits e inplits)
 - Agrupamento por mês para cálculo de imposto mensal sobre day trade
 - Sugestão de DARF a pagar por mês
+- Emular um navegador via [req](https://github.com/imroc/req) em go, logar na b3 e puxar os dados automatizando o processo
+- CLI completa, extração via pdf, customização de local de preenchimento do local do IR
+  
 
 ---
 
