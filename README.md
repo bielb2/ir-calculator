@@ -89,3 +89,4 @@ Exportado pela corretora (Inter, Apex, etc.) em formato Excel com as colunas:
 - **O preço médio é cumulativo entre anos**: se você comprou um ativo em 2022 e vendeu em 2024, o preço médio leva em conta todas as compras anteriores.
 - **Cada ano é independente para fins de IR**: lucros e prejuízos de um ano não se compensam com os de outro.
 - Os arquivos `nacional.xlsx`, `internacional.xlsx` e `resultado_ir.xlsx` estão no `.gitignore` para proteger seus dados financeiros.
+- ⚠️ **Desdobramentos (splits) não são calculados automaticamente.** Se um ativo sofreu desdobramento, o preço médio calculado pode ficar incorreto. Nesses casos, ajuste manualmente os dados de compra no seu arquivo de exportação antes de rodar o script.
