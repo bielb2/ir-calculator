@@ -2,11 +2,11 @@
 Calcula preço médio de compra e lucro/prejuízo por ticker.
 Gera abas separadas por ANO no Excel de saída (para IR).
 
-Suporta dois formatos de arquivo:
-  - Nacional      : Excel (.xlsx) exportado do site B3 / Investidor B3
-  - Internacional : TXT/TSV exportado pela corretora (Inter, Apex, etc.)
-    Formato esperado (separado por TAB, sem cabeçalho):
-      Data | Tipo (Stocks/FII...) | Ticker | C/V | Qtd | Preço | Corretora | taxa1..4
+Suporta três formatos de arquivo:
+  - Nacional        : Excel (.xlsx) exportado do site B3 / Investidor B3
+  - Internacional   : xlsx da corretora com ativos internacionais
+  - Status Invest   : xlsx exportado do Status Invest — contém tudo (Ações, Stocks,
+                      Tesouro Direto, ETF Exterior) em um único arquivo, com coluna Categoria
 
 Uso:
     python3 seven-biz-calculate.py
@@ -16,8 +16,9 @@ import pandas as pd
 from pathlib import Path
 
 # ── CONFIGURAÇÃO ─────────────────────────────────────────────────────────────
-ARQUIVO_NACIONAL       = "nacional.xlsx"        # xlsx exportado do B3
-ARQUIVO_INTERNACIONAL  = "internacional.xlsx"   # xlsx da corretora (ou None)
+ARQUIVO_NACIONAL       = None        # xlsx exportado do B3 (ou None)
+ARQUIVO_INTERNACIONAL  = None   # xlsx da corretora (ou None)
+ARQUIVO_STATUS_INVEST  = "status-invest.xlsx"   # xlsx do Status Invest (ou None)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -91,6 +92,44 @@ def carrega_internacional(arquivo: str) -> pd.DataFrame:
         df["Valor"]   = df["Qtd"] * df["Preco"]
 
     df["Mercado"] = "Internacional"
+    return df[["Data", "Ticker", "Tipo", "Qtd", "Preco", "Valor", "Mercado"]]
+
+
+# Mapeamento de Categoria do Status Invest → Mercado usado no relatório
+_CATEGORIA_PARA_MERCADO = {
+    "Ações":         "Nacional",
+    "FII":           "Nacional",
+    "Tesouro direto": "Tesouro Direto",
+    "Stocks":        "Internacional",
+    "ETF Exterior":  "Internacional",
+    "ETF":           "Nacional",
+    "BDR":           "Nacional",
+}
+
+
+def carrega_status_invest(arquivo: str) -> pd.DataFrame:
+    """
+    Lê o xlsx exportado do Status Invest (contém ativos nacionais, internacionais e tesouro).
+    Colunas esperadas:
+      Data operação | Categoria | Código Ativo | Operação C/V | Quantidade | Preço unitário | ...
+    """
+    df = pd.read_excel(arquivo)
+    df.columns = df.columns.str.strip()
+
+    df["Data"]   = pd.to_datetime(df["Data operação"], dayfirst=True, errors="coerce")
+    df["Ticker"] = df["Código Ativo"].str.strip()
+    df["Tipo"]   = df["Operação C/V"].str.strip().map({"C": "Compra", "V": "Venda"})
+    df["Qtd"]    = df["Quantidade"].apply(parse_numero_br)
+    df["Preco"]  = df["Preço unitário"].apply(parse_numero_br)
+    df["Valor"]  = df["Qtd"] * df["Preco"]
+
+    # Mapeia Categoria → Mercado; categorias desconhecidas ficam como "Outro"
+    df["Mercado"] = df["Categoria"].str.strip().map(_CATEGORIA_PARA_MERCADO).fillna("Outro")
+
+    categorias_desconhecidas = set(df[df["Mercado"] == "Outro"]["Categoria"].unique())
+    if categorias_desconhecidas:
+        print(f"[AVISO] Categorias não mapeadas (serão salvas como 'Outro'): {categorias_desconhecidas}")
+
     return df[["Data", "Ticker", "Tipo", "Qtd", "Preco", "Valor", "Mercado"]]
 
 
@@ -210,6 +249,12 @@ if ARQUIVO_INTERNACIONAL and Path(ARQUIVO_INTERNACIONAL).exists():
     frames.append(carrega_internacional(ARQUIVO_INTERNACIONAL))
 elif ARQUIVO_INTERNACIONAL:
     print(f"[AVISO] Arquivo internacional não encontrado: {ARQUIVO_INTERNACIONAL}")
+
+if ARQUIVO_STATUS_INVEST and Path(ARQUIVO_STATUS_INVEST).exists():
+    print(f"Carregando Status Invest: {ARQUIVO_STATUS_INVEST}")
+    frames.append(carrega_status_invest(ARQUIVO_STATUS_INVEST))
+elif ARQUIVO_STATUS_INVEST:
+    print(f"[AVISO] Arquivo Status Invest não encontrado: {ARQUIVO_STATUS_INVEST}")
 
 if not frames:
     print("Nenhum arquivo encontrado. Ajuste ARQUIVO_NACIONAL / ARQUIVO_INTERNACIONAL no topo do script.")

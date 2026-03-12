@@ -1,92 +1,79 @@
-# 📊 IR Calculator — Calculadora de Imposto de Renda sobre Ações
+# IR Calculator
 
-Calcula automaticamente o **preço médio de compra**, **lucro/prejuízo por venda** e gera um relatório Excel separado por ano para auxiliar na declaração do Imposto de Renda.
+Calcula preço médio de compra e lucro/prejuízo por venda, gerando um relatório Excel separado por ano para auxiliar na declaração do Imposto de Renda.
 
 ---
 
-## 🚀 Como usar
-
-### 1. Instalar dependências
+## Instalação
 
 ```bash
 pip install pandas openpyxl
 ```
 
-### 2. Exportar suas negociações da B3
+---
 
-Acesse [investidor.b3.com.br/extrato/negociacao](https://www.investidor.b3.com.br/extrato/negociacao), selecione o período desejado e exporte o arquivo Excel.
+## Como usar
 
-**Tela de negociações:**
+### 1. Exporte suas negociações
+
+**Opção A — Exportar do Investidor B3 (ações nacionais)**
+
+Acesse https://www.investidor.b3.com.br/extrato/negociacao, selecione o período e exporte o Excel.
 
 ![Tela de negociações do Investidor B3](docs/b3-tela-negociacao.png)
 
-**Modal de exportação:**
-
 ![Modal de exportação do período](docs/b3-modal-exportar.png)
 
-Salve o arquivo exportado com o nome `nacional.xlsx` na mesma pasta do script.
+Salve como `nacional.xlsx` na pasta do script.
 
-> 💡 Para ativos internacionais, exporte o extrato da sua corretora e salve como `internacional.xlsx`. Veja o formato esperado abaixo.
+**Opção B — Exportar do Status Invest (todos os ativos + internacional)**
+
+Exporte o histórico de operações do Status Invest e salve como `status-invest.xlsx`. O script detecta automaticamente a categoria de cada ativo:
+
+| Categoria no arquivo | Mercado no relatório |
+|---|---|
+| Ações, FII, ETF, BDR | Nacional |
+| Stocks, ETF Exterior | Internacional |
+| Tesouro direto | Tesouro Direto |
+
+**Opção C — Arquivo da corretora (ativos internacionais)**
+
+Exportado pela corretora (Inter, Apex, etc.) com as colunas: `Data operação`, `Código Ativo`, `Operação C/V`, `Quantidade`, `Preço unitário`. Salve como `internacional.xlsx`.
 
 ---
 
-### 3. Configurar o script
+### 2. Configure o script
 
-Abra `seven-biz-calculate.py` e ajuste as duas primeiras variáveis:
-
-```python
-ARQUIVO_NACIONAL      = "nacional.xlsx"       # xlsx exportado do B3
-ARQUIVO_INTERNACIONAL = "internacional.xlsx"  # xlsx da corretora (ou None)
-```
-
-Se não tiver ativos internacionais, coloque `None`:
+Abra `seven-biz-calculate.py` e ajuste as variáveis no topo:
 
 ```python
-ARQUIVO_INTERNACIONAL = None
+ARQUIVO_NACIONAL      = "nacional.xlsx"       # ou None
+ARQUIVO_INTERNACIONAL = "internacional.xlsx"  # ou None
+ARQUIVO_STATUS_INVEST = "status-invest.xlsx"  # ou None
 ```
 
-### 4. Executar
+Os três podem ser usados juntos ou separados.
+
+### 3. Execute
 
 ```bash
 python3 seven-biz-calculate.py
 ```
 
-O script vai gerar o arquivo `resultado_ir.xlsx` com as seguintes abas:
+Gera o arquivo `resultado_ir.xlsx` com as abas:
 
 | Aba | Conteúdo |
-|-----|----------|
-| **Carteira Atual** | Posição atual de todos os ativos (qtd, custo total, preço médio) |
-| **Vendas XXXX** | Detalhamento de cada venda do ano: preço médio de compra, preço de venda, lucro/prejuízo |
-| **Resumo XXXX** | Posição em 31/12 do ano + resultado das vendas — **use isso para declarar o IR** |
-| **Todas as Vendas** | Histórico completo de todas as vendas |
+|---|---|
+| Carteira Atual | Posição atual: qtd, custo total, preço médio |
+| Vendas XXXX | Detalhe de cada venda do ano |
+| Resumo XXXX | Posição em 31/12 + resultado das vendas — use para declarar o IR |
+| Todas as Vendas | Histórico completo de vendas |
 
 ---
 
-## 📁 Formato dos arquivos
+## Observações
 
-### Arquivo Nacional (B3)
-
-Exportado diretamente do site [Investidor B3](https://www.investidor.b3.com.br/extrato/negociacao). O script lê automaticamente as colunas:
-
-| Data do Negócio | Tipo de Movimentação | Código de Negociação | Quantidade | Preço | Valor |
-|---|---|---|---|---|---|
-| 10/03/2026 | Compra | BBSE3F | 3 | 34.32 | 102.96 |
-
-> O sufixo `F` de mercado fracionário (ex: `VIVT3F` → `VIVT3`) é removido automaticamente.
-
-### Arquivo Internacional
-
-Exportado pela corretora (Inter, Apex, etc.) em formato Excel com as colunas:
-
-| Data operação | Categoria | Código Ativo | Operação C/V | Quantidade | Preço unitário |
-|---|---|---|---|---|---|
-| 12/09/2025 | Stocks | INTR | V | 1,65907180 | 9,04 |
-
----
-
-## ⚠️ Observações importantes
-
-- **O preço médio é cumulativo entre anos**: se você comprou um ativo em 2022 e vendeu em 2024, o preço médio leva em conta todas as compras anteriores.
-- **Cada ano é independente para fins de IR**: lucros e prejuízos de um ano não se compensam com os de outro.
-- Os arquivos `nacional.xlsx`, `internacional.xlsx` e `resultado_ir.xlsx` estão no `.gitignore` para proteger seus dados financeiros.
-- ⚠️ **Desdobramentos (splits) não são calculados automaticamente.** Se um ativo sofreu desdobramento, o preço médio calculado pode ficar incorreto. Nesses casos, ajuste manualmente os dados de compra no seu arquivo de exportação antes de rodar o script.
+- O preço médio é cumulativo entre anos: compras de 2022 afetam o preço médio numa venda de 2024.
+- Cada ano é independente para fins de IR. Lucros e prejuízos de anos diferentes não se compensam.
+- Desdobramentos (splits) não são calculados automaticamente. Se um ativo sofreu split, ajuste manualmente os dados de compra antes de rodar o script.
+- Os arquivos `nacional.xlsx`, `internacional.xlsx`, `status-invest.xlsx` e `resultado_ir.xlsx` estão no `.gitignore`.
