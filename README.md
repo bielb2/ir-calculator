@@ -77,3 +77,24 @@ Gera o arquivo `resultado_ir.xlsx` com as abas:
 - Cada ano é independente para fins de IR. Lucros e prejuízos de anos diferentes não se compensam.
 - Desdobramentos (splits) não são calculados automaticamente. Se um ativo sofreu split, ajuste manualmente os dados de compra antes de rodar o script.
 - Os arquivos `nacional.xlsx`, `internacional.xlsx`, `status-invest.xlsx` e `resultado_ir.xlsx` estão no `.gitignore`.
+
+---
+
+## Roadmap
+
+- Suporte automático a desdobramentos (splits e inplits)
+- Agrupamento por mês para cálculo de imposto mensal sobre day trade
+- Sugestão de DARF a pagar por mês
+
+---
+
+## Contribuindo
+
+Pull requests são bem-vindos. Para mudanças maiores, abra uma issue primeiro para discutir o que você gostaria de mudar.
+
+---
+
+## Licença
+
+[Apache 2.0](LICENSE)
+
